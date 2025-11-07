@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { historicalLocations, VIETNAM_BOUNDS, MAP_CONFIG } from '../data/locations';
 import { geoTo3D } from '../utils/geoUtils';
+import { modelManager } from './ModelManager';
 
 // ============================================
 // VIETNAM 3D MAP
-// Core 3D terrain and geography
+// Core 3D terrain and geography with REAL MODELS
 // ============================================
 
 export class VietnamMap3D {
@@ -12,6 +13,8 @@ export class VietnamMap3D {
   private terrain: THREE.Mesh | null = null;
   private markers: THREE.Group;
   private water: THREE.Mesh | null = null;
+  private historicalScenes: Map<string, THREE.Group> = new Map();
+  private currentScene: THREE.Group | null = null;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -20,9 +23,12 @@ export class VietnamMap3D {
   }
 
   /**
-   * Initialize the Vietnam map
+   * Initialize the Vietnam map (now with models!)
    */
-  public async initialize(): Promise<void> {
+  public async initialize(onProgress?: (progress: number, current: string) => void): Promise<void> {
+    // Load all models first
+    await modelManager.loadAll(onProgress);
+
     // Create terrain
     this.createTerrain();
 
@@ -34,6 +40,9 @@ export class VietnamMap3D {
 
     // Add atmospheric effects
     this.addAtmosphere();
+
+    // Pre-create all scenes (hidden)
+    this.createHistoricalScenes();
   }
 
   /**
@@ -343,6 +352,72 @@ export class VietnamMap3D {
     }
 
     return 0;
+  }
+
+  /**
+   * Create all historical 3D scenes
+   */
+  private createHistoricalScenes(): void {
+    // Scene 1: Điện Biên Phủ
+    const dbpScene = modelManager.createDienBienPhuScene();
+    const dbpPos = geoTo3D(historicalLocations[0].coordinates);
+    dbpScene.position.set(dbpPos.x, dbpPos.y, dbpPos.z);
+    dbpScene.visible = false;
+    this.historicalScenes.set('dien-bien-phu', dbpScene);
+    this.scene.add(dbpScene);
+
+    // Scene 2: Ba Đình
+    const bdScene = modelManager.createBaDinhScene();
+    const bdPos = geoTo3D(historicalLocations[1].coordinates);
+    bdScene.position.set(bdPos.x, bdPos.y, bdPos.z);
+    bdScene.visible = false;
+    this.historicalScenes.set('ba-dinh', bdScene);
+    this.scene.add(bdScene);
+
+    // Scene 3: Sài Gòn 1975
+    const sgScene = modelManager.createSaigon1975Scene();
+    const sgPos = geoTo3D(historicalLocations[2].coordinates);
+    sgScene.position.set(sgPos.x, sgPos.y, sgPos.z);
+    sgScene.visible = false;
+    this.historicalScenes.set('saigon-1975', sgScene);
+    this.scene.add(sgScene);
+
+    console.log('✅ All historical 3D scenes created');
+  }
+
+  /**
+   * Show specific historical scene
+   */
+  public showScene(locationId: string): void {
+    // Hide current scene
+    if (this.currentScene) {
+      this.currentScene.visible = false;
+    }
+
+    // Show new scene
+    const scene = this.historicalScenes.get(locationId);
+    if (scene) {
+      scene.visible = true;
+      this.currentScene = scene;
+      console.log(`👁️ Showing scene: ${locationId}`);
+    }
+  }
+
+  /**
+   * Hide all scenes
+   */
+  public hideAllScenes(): void {
+    this.historicalScenes.forEach((scene) => {
+      scene.visible = false;
+    });
+    this.currentScene = null;
+  }
+
+  /**
+   * Get scene for location
+   */
+  public getScene(locationId: string): THREE.Group | undefined {
+    return this.historicalScenes.get(locationId);
   }
 
   /**

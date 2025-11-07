@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { VietnamMap3D } from '../core/VietnamMap3D';
 import { CameraController } from '../core/CameraController';
 import { HistoricalLocation } from '../types';
+import { LoadingScreen } from './LoadingScreen';
 import './Scene3D.css';
 
 interface Scene3DProps {
@@ -20,6 +21,8 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
   const vietnamMapRef = useRef<VietnamMap3D | null>(null);
   const cameraControllerRef = useRef<CameraController | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [currentModel, setCurrentModel] = useState<string>('');
   const animationFrameRef = useRef<number>();
 
   useEffect(() => {
@@ -102,13 +105,26 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
     const cameraController = new CameraController(camera);
     cameraControllerRef.current = cameraController;
 
-    // Load scene
-    vietnamMap.initialize().then(() => {
-      setIsLoading(false);
+    // Load scene with progress
+    vietnamMap
+      .initialize((progress, current) => {
+        setLoadingProgress(progress);
+        setCurrentModel(current);
+        console.log(`Loading: ${current} - ${progress.toFixed(0)}%`);
+      })
+      .then(() => {
+        // Small delay to show 100%
+        setTimeout(() => {
+          setIsLoading(false);
 
-      // Play intro flight
-      cameraController.introFlight();
-    });
+          // Play intro flight
+          cameraController.introFlight();
+        }, 500);
+      })
+      .catch((error) => {
+        console.error('Failed to initialize map:', error);
+        setIsLoading(false);
+      });
 
     // Animation loop
     let lastTime = 0;
@@ -163,8 +179,12 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
 
   // Handle location changes
   useEffect(() => {
-    if (currentLocation && cameraControllerRef.current) {
+    if (currentLocation && cameraControllerRef.current && vietnamMapRef.current) {
+      // Fly to location
       cameraControllerRef.current.flyToLocation(currentLocation, 4).then(() => {
+        // Show the 3D scene for this location
+        vietnamMapRef.current?.showScene(currentLocation.id);
+
         if (onLocationReached) {
           onLocationReached(currentLocation);
         }
@@ -177,10 +197,7 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
       <div ref={canvasRef} className="scene-3d-canvas" />
 
       {isLoading && (
-        <div className="scene-3d-loading">
-          <div className="loading-spinner" />
-          <p>Đang tải bản đồ Việt Nam...</p>
-        </div>
+        <LoadingScreen progress={loadingProgress} currentModel={currentModel} />
       )}
     </div>
   );

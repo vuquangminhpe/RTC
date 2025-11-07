@@ -60,20 +60,23 @@ export class CameraController {
     });
 
     const lookAtTarget = new THREE.Vector3(target3D.x, target3D.y + 5, target3D.z);
+    const self = this;
 
     tl.to(
-      {},
+      { progress: 0 },
       {
+        progress: 1,
         duration: duration,
         ease: 'power2.inOut',
         onUpdate: function () {
-          if (!this.targets()[0]) return;
+          const target = this.targets()[0];
+          if (!target) return;
 
-          const progress = this.progress();
-          const position = this.currentPath!.getPoint(progress);
-          this.camera.position.copy(position);
-          this.camera.lookAt(lookAtTarget);
-        }.bind(this),
+          const progress = target.progress;
+          const position = self.currentPath!.getPoint(progress);
+          self.camera.position.copy(position);
+          self.camera.lookAt(lookAtTarget);
+        },
       }
     );
 
@@ -106,21 +109,24 @@ export class CameraController {
     const lookAtTarget = new THREE.Vector3(target3D.x, target3D.y + 5, target3D.z);
 
     const tl = gsap.timeline({ repeat: -1 });
+    const self = this;
 
     tl.to(
-      {},
+      { progress: 0 },
       {
+        progress: 1,
         duration: 10 / speed,
         ease: 'none',
         onUpdate: function () {
-          const time = this.progress() * Math.PI * 2;
+          const progress = this.targets()[0].progress;
+          const time = progress * Math.PI * 2;
           const x = target3D.x + Math.cos(time) * radius;
           const z = target3D.z + Math.sin(time) * radius;
           const y = target3D.y + 20 + Math.sin(time * 2) * 5;
 
-          this.camera.position.set(x, y, z);
-          this.camera.lookAt(lookAtTarget);
-        }.bind(this),
+          self.camera.position.set(x, y, z);
+          self.camera.lookAt(lookAtTarget);
+        },
       }
     );
 
@@ -148,21 +154,23 @@ export class CameraController {
     const lookAtTarget = new THREE.Vector3(0, 0, 0);
 
     const tl = gsap.timeline();
+    const self = this;
 
     tl.to(
-      {},
+      { progress: 0 },
       {
+        progress: 1,
         duration: 10,
         ease: 'power1.inOut',
         onUpdate: function () {
-          const progress = this.progress();
+          const progress = this.targets()[0].progress;
           const position = path.getPoint(progress);
-          this.camera.position.copy(position);
+          self.camera.position.copy(position);
 
           // Gradually look at center
           lookAtTarget.y = 10 - progress * 10;
-          this.camera.lookAt(lookAtTarget);
-        }.bind(this),
+          self.camera.lookAt(lookAtTarget);
+        },
       }
     );
 
