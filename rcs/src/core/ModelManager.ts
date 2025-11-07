@@ -244,25 +244,16 @@ export class ModelManager {
       group.add(bacHo);
     }
 
-    // Add crowd using instancing (75 people!)
+    // Add crowd using instancing (2 people only)
     if (this.models.crowdPerson) {
-      const positions: THREE.Vector3[] = [];
-      const rotations: THREE.Euler[] = [];
-
-      // Generate crowd positions (grid with randomness) - SCALED UP
-      const rows = 5;
-      const cols = 15;
-
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const x = (col - cols / 2) * 10 + (Math.random() - 0.5) * 3;
-          const z = 20 + row * 8 + (Math.random() - 0.5) * 2;
-          const y = 3;
-
-          positions.push(new THREE.Vector3(x, y, z));
-          rotations.push(new THREE.Euler(0, Math.random() * 0.4 - 0.2, 0));
-        }
-      }
+      const positions: THREE.Vector3[] = [
+        new THREE.Vector3(-15, 3, 25),
+        new THREE.Vector3(15, 3, 25),
+      ];
+      const rotations: THREE.Euler[] = [
+        new THREE.Euler(0, 0, 0),
+        new THREE.Euler(0, 0, 0),
+      ];
 
       const crowdMesh = modelLoader.createInstancedMesh(
         this.models.crowdPerson,
