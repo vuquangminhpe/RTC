@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { HistoricalLocation } from '../types';
+import type { HistoricalLocation } from '../types';
 import { DienBienPhuScene } from '../illustrations/DienBienPhuScene';
 import { BaDinhScene } from '../illustrations/BaDinhScene';
 import { Saigon1975Scene } from '../illustrations/Saigon1975Scene';

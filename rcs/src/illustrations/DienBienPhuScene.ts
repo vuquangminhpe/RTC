@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import gsap from 'gsap';
-import { BaseIllustration, IllustrationConfig } from './BaseIllustration';
+import { BaseIllustration } from './BaseIllustration';
+import type { IllustrationConfig } from './BaseIllustration';
 
 // ============================================
 // DIEN BIEN PHU ILLUSTRATION
@@ -11,7 +12,7 @@ export class DienBienPhuScene extends BaseIllustration {
   private flagPole: Konva.Line | null = null;
   private flag: Konva.Group | null = null;
   private mainSoldier: Konva.Group | null = null;
-  private bunker: Konva.Group | null = null;
+  // private _bunker: Konva.Group | null = null;
 
   constructor(config: IllustrationConfig) {
     super(config);
@@ -33,7 +34,8 @@ export class DienBienPhuScene extends BaseIllustration {
     this.drawBattlefieldSmoke(bgLayer);
 
     // Draw De Castries bunker
-    this.bunker = this.drawBunker(mainLayer);
+    // this._bunker = this.drawBunker(mainLayer);
+    this.drawBunker(mainLayer);
 
     // Draw supporting soldiers
     this.drawSupportingSoldiers(mainLayer);
@@ -97,7 +99,7 @@ export class DienBienPhuScene extends BaseIllustration {
     const w = this.config.width;
 
     // Far mountains (lighter)
-    const farMountains = this.drawMountains(
+    this.drawMountains(
       layer,
       [
         0,
@@ -122,7 +124,7 @@ export class DienBienPhuScene extends BaseIllustration {
     );
 
     // Mid mountains
-    const midMountains = this.drawMountains(
+    this.drawMountains(
       layer,
       [
         0,
@@ -147,7 +149,7 @@ export class DienBienPhuScene extends BaseIllustration {
     );
 
     // Near mountains (darker)
-    const nearMountains = this.drawMountains(
+    this.drawMountains(
       layer,
       [
         0,

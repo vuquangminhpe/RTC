@@ -423,7 +423,7 @@ export class VietnamMap3D {
   /**
    * Update method (called each frame)
    */
-  public update(deltaTime: number): void {
+  public update(_deltaTime: number): void {
     // Any per-frame updates
   }
 }

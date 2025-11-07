@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import gsap from 'gsap';
-import { BaseIllustration, IllustrationConfig } from './BaseIllustration';
+import { BaseIllustration } from './BaseIllustration';
+import type { IllustrationConfig } from './BaseIllustration';
 
 // ============================================
 // SAIGON 1975 ILLUSTRATION
@@ -629,7 +630,7 @@ export class Saigon1975Scene extends BaseIllustration {
       }
 
       // Soldiers move with tank
-      this.soldiers.forEach((soldier, i) => {
+      this.soldiers.forEach((soldier, _i) => {
         masterTimeline.to(
           soldier,
           {

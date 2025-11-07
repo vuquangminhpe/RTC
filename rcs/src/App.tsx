@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Scene3D } from './ui/Scene3D';
 import { IllustrationOverlay } from './ui/IllustrationOverlay';
 import { Controls } from './ui/Controls';
-import { HistoricalLocation } from './types';
+import type { HistoricalLocation } from './types';
 import './App.css';
 
 function App() {

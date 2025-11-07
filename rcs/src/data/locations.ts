@@ -1,4 +1,4 @@
-import { HistoricalLocation } from '../types';
+import type { HistoricalLocation } from '../types';
 import * as THREE from 'three';
 
 // ============================================

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { VietnamMap3D } from '../core/VietnamMap3D';
 import { CameraController } from '../core/CameraController';
-import { HistoricalLocation } from '../types';
+import type { HistoricalLocation } from '../types';
 import { LoadingScreen } from './LoadingScreen';
 import './Scene3D.css';
 
@@ -23,7 +23,7 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [currentModel, setCurrentModel] = useState<string>('');
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
     if (!canvasRef.current) return;

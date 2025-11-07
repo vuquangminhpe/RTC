@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import gsap from 'gsap';
-import { BaseIllustration, IllustrationConfig } from './BaseIllustration';
+import { BaseIllustration } from './BaseIllustration';
+import type { IllustrationConfig } from './BaseIllustration';
 
 // ============================================
 // BA DINH SQUARE ILLUSTRATION
@@ -9,10 +10,10 @@ import { BaseIllustration, IllustrationConfig } from './BaseIllustration';
 
 export class BaDinhScene extends BaseIllustration {
   private hoChiMinh: Konva.Group | null = null;
-  private microphone: Konva.Group | null = null;
-  private flag: Konva.Group | null = null;
+  // private _microphone: Konva.Group | null = null;
+  // private _flag: Konva.Group | null = null;
   private crowd: Konva.Group[] = [];
-  private speechBubble: Konva.Group | null = null;
+  // private _speechBubble: Konva.Group | null = null;
 
   constructor(config: IllustrationConfig) {
     super(config);
@@ -37,7 +38,8 @@ export class BaDinhScene extends BaseIllustration {
     this.hoChiMinh = this.drawHoChiMinh(mainLayer);
 
     // Draw microphone
-    this.microphone = this.drawMicrophone(mainLayer);
+    // this._microphone = this.drawMicrophone(mainLayer);
+    this.drawMicrophone(mainLayer);
 
     // Draw Vietnamese flags
     this.drawFlags(mainLayer);
@@ -341,7 +343,7 @@ export class BaDinhScene extends BaseIllustration {
       { x: 0.85, y: 0.55 },
     ];
 
-    flagPositions.forEach((pos, i) => {
+    flagPositions.forEach((pos, _i) => {
       const flagGroup = new Konva.Group({
         x: this.config.width * pos.x,
         y: this.config.height * pos.y,
@@ -523,15 +525,18 @@ export class BaDinhScene extends BaseIllustration {
 
     // 2. Raises paper
     if (this.hoChiMinh) {
-      masterTimeline.to(
-        this.hoChiMinh.findOne((node: any) => node.getClassName() === 'Line' && node.points()[2] === 25),
-        {
-          rotation: -20,
-          duration: 0.8,
-          ease: 'back.out',
-        },
-        '-=0.5'
-      );
+      const paperNode = this.hoChiMinh.findOne((node: any) => node.getClassName() === 'Line' && node.points()[2] === 25);
+      if (paperNode) {
+        masterTimeline.to(
+          paperNode,
+          {
+            rotation: -20,
+            duration: 0.8,
+            ease: 'back.out',
+          },
+          '-=0.5'
+        );
+      }
     }
 
     // 3. Crowd reacts (wave)

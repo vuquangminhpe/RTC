@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { modelLoader, LoadedModel } from './ModelLoader';
+import { modelLoader } from './ModelLoader';
+import type { LoadedModel } from './ModelLoader';
 
 // ============================================
 // MODEL MANAGER

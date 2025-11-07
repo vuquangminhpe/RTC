@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GeoCoordinates, Vietnam3DCoords } from '../types';
+import type { GeoCoordinates, Vietnam3DCoords } from '../types';
 import { VIETNAM_BOUNDS, MAP_CONFIG } from '../data/locations';
 
 // ============================================

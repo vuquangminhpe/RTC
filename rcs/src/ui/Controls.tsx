@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HistoricalLocation } from '../types';
+import type { HistoricalLocation } from '../types';
 import { historicalLocations } from '../data/locations';
 import './Controls.css';
 

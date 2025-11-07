@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { HistoricalLocation } from '../types';
+import type { HistoricalLocation } from '../types';
 import { geoTo3D, createCameraPath, createSplinePath } from '../utils/geoUtils';
 
 // ============================================
