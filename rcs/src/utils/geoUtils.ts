@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import type { GeoCoordinates, Vietnam3DCoords } from '../types';
-import { VIETNAM_BOUNDS, MAP_CONFIG } from '../data/locations';
+import * as THREE from "three";
+import type { GeoCoordinates, Vietnam3DCoords } from "../types";
+import { VIETNAM_BOUNDS, MAP_CONFIG } from "../data/locations";
 
 // ============================================
 // GEOGRAPHIC UTILITIES
@@ -13,12 +13,12 @@ import { VIETNAM_BOUNDS, MAP_CONFIG } from '../data/locations';
 export function geoTo3D(geo: GeoCoordinates): Vietnam3DCoords {
   const { lat, lng, alt = 0 } = geo;
   const { centerLat, centerLng } = VIETNAM_BOUNDS;
-  const { scale, elevationScale } = MAP_CONFIG;
+  const { scale, altitudeScale = 0.02 } = MAP_CONFIG;
 
   // Mercator projection
   const x = (lng - centerLng) * scale;
   const z = -(lat - centerLat) * scale; // Negative Z for correct orientation
-  const y = alt * elevationScale;
+  const y = alt * altitudeScale;
 
   return { x, y, z };
 }
@@ -29,11 +29,11 @@ export function geoTo3D(geo: GeoCoordinates): Vietnam3DCoords {
 export function threeDToGeo(coords: Vietnam3DCoords): GeoCoordinates {
   const { x, y, z } = coords;
   const { centerLat, centerLng } = VIETNAM_BOUNDS;
-  const { scale, elevationScale } = MAP_CONFIG;
+  const { scale, altitudeScale = 0.02 } = MAP_CONFIG;
 
   const lng = x / scale + centerLng;
   const lat = -z / scale + centerLat;
-  const alt = y / elevationScale;
+  const alt = altitudeScale === 0 ? 0 : y / altitudeScale;
 
   return { lat, lng, alt };
 }
@@ -67,7 +67,9 @@ export function getBearing(p1: GeoCoordinates, p2: GeoCoordinates): number {
   const dLng = toRadians(p2.lng - p1.lng);
 
   const y = Math.sin(dLng) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
 
   const bearing = toDegrees(Math.atan2(y, x));
   return (bearing + 360) % 360;
@@ -105,21 +107,30 @@ export function createCameraPath(
 /**
  * Create Catmull-Rom spline path for smooth camera movement
  */
-export function createSplinePath(points: THREE.Vector3[], tension: number = 0.5): THREE.CatmullRomCurve3 {
-  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension);
+export function createSplinePath(
+  points: THREE.Vector3[],
+  tension: number = 0.5
+): THREE.CatmullRomCurve3 {
+  return new THREE.CatmullRomCurve3(points, false, "catmullrom", tension);
 }
 
 /**
  * Get point on path at normalized position (0-1)
  */
-export function getPointOnPath(path: THREE.CatmullRomCurve3, t: number): THREE.Vector3 {
+export function getPointOnPath(
+  path: THREE.CatmullRomCurve3,
+  t: number
+): THREE.Vector3 {
   return path.getPoint(Math.max(0, Math.min(1, t)));
 }
 
 /**
  * Get tangent (direction) on path at normalized position (0-1)
  */
-export function getTangentOnPath(path: THREE.CatmullRomCurve3, t: number): THREE.Vector3 {
+export function getTangentOnPath(
+  path: THREE.CatmullRomCurve3,
+  t: number
+): THREE.Vector3 {
   return path.getTangent(Math.max(0, Math.min(1, t))).normalize();
 }
 
@@ -168,7 +179,13 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Map value from one range to another
  */
-export function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+export function mapRange(
+  value: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number
+): number {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
 
@@ -225,17 +242,24 @@ export const easing = {
   easeInOutQuad: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
   easeInCubic: (t: number) => t * t * t,
   easeOutCubic: (t: number) => --t * t * t + 1,
-  easeInOutCubic: (t: number) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1),
+  easeInOutCubic: (t: number) =>
+    t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
   easeInQuart: (t: number) => t * t * t * t,
   easeOutQuart: (t: number) => 1 - --t * t * t * t,
-  easeInOutQuart: (t: number) => (t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t),
+  easeInOutQuart: (t: number) =>
+    t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t,
   easeInElastic: (t: number) => {
     if (t === 0 || t === 1) return t;
-    return -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * ((2 * Math.PI) / 3));
+    return (
+      -Math.pow(2, 10 * t - 10) *
+      Math.sin((t * 10 - 10.75) * ((2 * Math.PI) / 3))
+    );
   },
   easeOutElastic: (t: number) => {
     if (t === 0 || t === 1) return t;
-    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1;
+    return (
+      Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1
+    );
   },
   easeInOutElastic: (t: number) => {
     if (t === 0 || t === 1) return t;

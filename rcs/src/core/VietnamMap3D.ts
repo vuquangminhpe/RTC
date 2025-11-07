@@ -1,7 +1,11 @@
-import * as THREE from 'three';
-import { historicalLocations, VIETNAM_BOUNDS, MAP_CONFIG } from '../data/locations';
-import { geoTo3D } from '../utils/geoUtils';
-import { modelManager } from './ModelManager';
+import * as THREE from "three";
+import {
+  historicalLocations,
+  VIETNAM_BOUNDS,
+  MAP_CONFIG,
+} from "../data/locations";
+import { geoTo3D } from "../utils/geoUtils";
+import { modelManager } from "./ModelManager";
 
 // ============================================
 // VIETNAM 3D MAP
@@ -25,7 +29,9 @@ export class VietnamMap3D {
   /**
    * Initialize the Vietnam map (now with models!)
    */
-  public async initialize(onProgress?: (progress: number, current: string) => void): Promise<void> {
+  public async initialize(
+    onProgress?: (progress: number, current: string) => void
+  ): Promise<void> {
     // Load all models first
     await modelManager.loadAll(onProgress);
 
@@ -103,7 +109,7 @@ export class VietnamMap3D {
 
     // Create material with texture
     const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#3a5f3a'), // Green for land
+      color: new THREE.Color("#3a5f3a"), // Green for land
       roughness: 0.8,
       metalness: 0.2,
       flatShading: false,
@@ -112,7 +118,7 @@ export class VietnamMap3D {
     // Apply gradient (greener in south, more brown in mountains)
     material.onBeforeCompile = (shader) => {
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <common>',
+        "#include <common>",
         `
         #include <common>
         varying vec3 vPosition;
@@ -120,7 +126,7 @@ export class VietnamMap3D {
       );
 
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
+        "#include <begin_vertex>",
         `
         #include <begin_vertex>
         vPosition = position;
@@ -128,7 +134,7 @@ export class VietnamMap3D {
       );
 
       shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
+        "#include <common>",
         `
         #include <common>
         varying vec3 vPosition;
@@ -136,7 +142,7 @@ export class VietnamMap3D {
       );
 
       shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
+        "#include <color_fragment>",
         `
         #include <color_fragment>
 
@@ -174,7 +180,7 @@ export class VietnamMap3D {
 
     const geometry = new THREE.PlaneGeometry(width, height);
     const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1e40af'),
+      color: new THREE.Color("#1e40af"),
       roughness: 0.3,
       metalness: 0.7,
       transparent: true,
@@ -204,10 +210,11 @@ export class VietnamMap3D {
   private createLocationMarkers(): void {
     historicalLocations.forEach((location) => {
       const pos3D = geoTo3D(location.coordinates);
+      const surfaceHeight = this.getTerrainHeightAt(pos3D.x, pos3D.z);
 
       // Create marker
       const markerGroup = new THREE.Group();
-      markerGroup.position.set(pos3D.x, pos3D.y + 2, pos3D.z);
+      markerGroup.position.set(pos3D.x, surfaceHeight + 2, pos3D.z);
 
       // Marker geometry (pillar of light)
       const pillarGeometry = new THREE.CylinderGeometry(0.5, 0.5, 15, 16);
@@ -249,14 +256,14 @@ export class VietnamMap3D {
       markerGroup.add(glow);
 
       // Add year label (using Sprite)
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = 256;
       canvas.height = 128;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext("2d")!;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 60px Arial';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 60px Arial";
+      ctx.textAlign = "center";
       ctx.fillText(location.year.toString(), 128, 70);
 
       const texture = new THREE.CanvasTexture(canvas);
@@ -292,7 +299,7 @@ export class VietnamMap3D {
    */
   private addAtmosphere(): void {
     // Fog for depth
-    this.scene.fog = new THREE.Fog(0x87ceeb, 50, 200);
+    this.scene.fog = new THREE.Fog(0x87ceeb, 120, 400);
 
     // Ambient particles (floating dust/atmosphere)
     const particleCount = 500;
@@ -305,7 +312,10 @@ export class VietnamMap3D {
       positions[i + 2] = (Math.random() - 0.5) * 200;
     }
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
 
     const particlesMaterial = new THREE.PointsMaterial({
       color: 0xffffff,
@@ -321,7 +331,8 @@ export class VietnamMap3D {
     // Animate particles
     const animateParticles = () => {
       particles.rotation.y += 0.0001;
-      const positions = particlesGeometry.attributes.position.array as Float32Array;
+      const positions = particlesGeometry.attributes.position
+        .array as Float32Array;
 
       for (let i = 1; i < positions.length; i += 3) {
         positions[i] -= 0.02;
@@ -361,28 +372,31 @@ export class VietnamMap3D {
     // Scene 1: Điện Biên Phủ
     const dbpScene = modelManager.createDienBienPhuScene();
     const dbpPos = geoTo3D(historicalLocations[0].coordinates);
-    dbpScene.position.set(dbpPos.x, dbpPos.y, dbpPos.z);
+    const dbpSurface = this.getTerrainHeightAt(dbpPos.x, dbpPos.z);
+    dbpScene.position.set(dbpPos.x, dbpSurface + 0.5, dbpPos.z);
     dbpScene.visible = false;
-    this.historicalScenes.set('dien-bien-phu', dbpScene);
+    this.historicalScenes.set("dien-bien-phu", dbpScene);
     this.scene.add(dbpScene);
 
     // Scene 2: Ba Đình
     const bdScene = modelManager.createBaDinhScene();
     const bdPos = geoTo3D(historicalLocations[1].coordinates);
-    bdScene.position.set(bdPos.x, bdPos.y, bdPos.z);
+    const bdSurface = this.getTerrainHeightAt(bdPos.x, bdPos.z);
+    bdScene.position.set(bdPos.x, bdSurface + 0.3, bdPos.z);
     bdScene.visible = false;
-    this.historicalScenes.set('ba-dinh', bdScene);
+    this.historicalScenes.set("ba-dinh", bdScene);
     this.scene.add(bdScene);
 
     // Scene 3: Sài Gòn 1975
     const sgScene = modelManager.createSaigon1975Scene();
     const sgPos = geoTo3D(historicalLocations[2].coordinates);
-    sgScene.position.set(sgPos.x, sgPos.y, sgPos.z);
+    const sgSurface = this.getTerrainHeightAt(sgPos.x, sgPos.z);
+    sgScene.position.set(sgPos.x, sgSurface + 0.3, sgPos.z);
     sgScene.visible = false;
-    this.historicalScenes.set('saigon-1975', sgScene);
+    this.historicalScenes.set("saigon-1975", sgScene);
     this.scene.add(sgScene);
 
-    console.log('✅ All historical 3D scenes created');
+    console.log("✅ All historical 3D scenes created");
   }
 
   /**
@@ -431,6 +445,7 @@ export class VietnamMap3D {
    * Update method (called each frame)
    */
   public update(_deltaTime: number): void {
+    void _deltaTime;
     // Any per-frame updates
   }
 }

@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { VietnamMap3D } from '../core/VietnamMap3D';
-import { CameraController } from '../core/CameraController';
-import { LoadingScreen } from './LoadingScreen';
-import './Scene3D.css';
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { VietnamMap3D } from "../core/VietnamMap3D";
+import { CameraController } from "../core/CameraController";
+import { LoadingScreen } from "./LoadingScreen";
+import "./Scene3D.css";
 
 export const Scene3D = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -16,21 +16,22 @@ export const Scene3D = () => {
   const cameraControllerRef = useRef<CameraController | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [currentModel, setCurrentModel] = useState<string>('');
+  const [currentModel, setCurrentModel] = useState<string>("");
   const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
     if (!canvasRef.current) return;
+    const container = canvasRef.current;
 
     // Initialize Three.js scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#87ceeb');
+    scene.background = new THREE.Color("#87ceeb");
     sceneRef.current = scene;
 
     // Setup camera
     const camera = new THREE.PerspectiveCamera(
       60,
-      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+      container.clientWidth / container.clientHeight,
       0.1,
       1000
     );
@@ -43,13 +44,13 @@ export const Scene3D = () => {
       antialias: true,
       alpha: true,
     });
-    renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
+    renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
-    canvasRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     // Setup controls
@@ -112,49 +113,54 @@ export const Scene3D = () => {
           setIsLoading(false);
 
           // Skip intro flight for now - just show the scene
-          console.log('✅ Scene ready! Camera at:', camera.position);
-          console.log('📍 Click on glowing pillars (markers) to fly to locations');
-          console.log('🎮 Drag to rotate, scroll to zoom');
+          console.log("✅ Scene ready! Camera at:", camera.position);
+          console.log(
+            "📍 Click on glowing pillars (markers) to fly to locations"
+          );
+          console.log("🎮 Drag to rotate, scroll to zoom");
 
           // Reset camera to good viewing position
-          camera.position.set(0, 80, 120);
-          camera.lookAt(0, 0, 0);
+          const centerHeight = vietnamMap.getTerrainHeightAt(0, 0);
+          const lookAtTarget = new THREE.Vector3(0, centerHeight + 5, 0);
+          controls.target.copy(lookAtTarget);
+          camera.position.set(0, centerHeight + 120, 180);
+          camera.lookAt(lookAtTarget);
           controls.update();
 
           // Add 3D instruction sprite
-          const instructionCanvas = document.createElement('canvas');
+          const instructionCanvas = document.createElement("canvas");
           instructionCanvas.width = 1024;
           instructionCanvas.height = 512;
-          const ctx = instructionCanvas.getContext('2d')!;
+          const ctx = instructionCanvas.getContext("2d")!;
 
           // Background
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
           ctx.fillRect(20, 20, 984, 472);
 
           // Border
-          ctx.strokeStyle = '#4ecdc4';
+          ctx.strokeStyle = "#4ecdc4";
           ctx.lineWidth = 4;
           ctx.strokeRect(20, 20, 984, 472);
 
           // Title
-          ctx.fillStyle = '#ff6b6b';
-          ctx.font = 'bold 60px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🎮 HƯỚNG DẪN TƯƠNG TÁC', 512, 100);
+          ctx.fillStyle = "#ff6b6b";
+          ctx.font = "bold 60px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("🎮 HƯỚNG DẪN TƯƠNG TÁC", 512, 100);
 
           // Instructions
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '40px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText('🖱️  Kéo chuột để xoay camera', 80, 180);
-          ctx.fillText('🔍 Scroll để zoom in/out', 80, 240);
-          ctx.fillText('📍 Click vào CỘT SÁNG để bay đến địa điểm', 80, 300);
-          ctx.fillText('✨ 5 địa điểm lịch sử đang chờ bạn!', 80, 360);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "40px Arial";
+          ctx.textAlign = "left";
+          ctx.fillText("🖱️  Kéo chuột để xoay camera", 80, 180);
+          ctx.fillText("🔍 Scroll để zoom in/out", 80, 240);
+          ctx.fillText("📍 Click vào CỘT SÁNG để bay đến địa điểm", 80, 300);
+          ctx.fillText("✨ 5 địa điểm lịch sử đang chờ bạn!", 80, 360);
 
-          ctx.fillStyle = '#4ecdc4';
-          ctx.font = 'italic 32px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('(Tìm các cột sáng phát quang trên bản đồ)', 512, 440);
+          ctx.fillStyle = "#4ecdc4";
+          ctx.font = "italic 32px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("(Tìm các cột sáng phát quang trên bản đồ)", 512, 440);
 
           const instructionTexture = new THREE.CanvasTexture(instructionCanvas);
           const instructionMaterial = new THREE.SpriteMaterial({
@@ -162,7 +168,7 @@ export const Scene3D = () => {
             transparent: true,
           });
           const instructionSprite = new THREE.Sprite(instructionMaterial);
-          instructionSprite.position.set(0, 50, -50); // In front of camera
+          instructionSprite.position.set(0, lookAtTarget.y + 45, -50);
           instructionSprite.scale.set(60, 30, 1);
           scene.add(instructionSprite);
 
@@ -175,7 +181,7 @@ export const Scene3D = () => {
         }, 500);
       })
       .catch((error) => {
-        console.error('Failed to initialize map:', error);
+        console.error("Failed to initialize map:", error);
         setIsLoading(false);
       });
 
@@ -198,14 +204,17 @@ export const Scene3D = () => {
     const mouse = new THREE.Vector2();
 
     const handleClick = (event: MouseEvent) => {
-      if (!canvasRef.current || !camera || !scene) return;
+      if (!container || !camera || !scene) return;
 
       // Calculate mouse position in normalized device coordinates (-1 to +1)
-      const rect = canvasRef.current.getBoundingClientRect();
+      const rect = container.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      console.log('🖱️ Click at:', { x: mouse.x.toFixed(2), y: mouse.y.toFixed(2) });
+      console.log("🖱️ Click at:", {
+        x: mouse.x.toFixed(2),
+        y: mouse.y.toFixed(2),
+      });
 
       // Update raycaster
       raycaster.setFromCamera(mouse, camera);
@@ -213,7 +222,7 @@ export const Scene3D = () => {
       // Check for intersections with markers
       const markers = vietnamMap.getMarkers();
       if (!markers) {
-        console.log('❌ No markers found');
+        console.log("❌ No markers found");
         return;
       }
 
@@ -230,7 +239,7 @@ export const Scene3D = () => {
         // Get location from userData
         const location = markerGroup.userData.location;
         if (location) {
-          console.log('✅ Clicked location:', location.name, location.year);
+          console.log("✅ Clicked location:", location.name, location.year);
 
           // Hide all scenes first
           vietnamMap.hideAllScenes();
@@ -239,24 +248,24 @@ export const Scene3D = () => {
           cameraController.flyToLocation(location, 4).then(() => {
             // Show the 3D scene for this location
             vietnamMap.showScene(location.id);
-            console.log('🎬 Showing scene:', location.name);
+            console.log("🎬 Showing scene:", location.name);
           });
         } else {
-          console.log('⚠️ No location data in marker');
+          console.log("⚠️ No location data in marker");
         }
       } else {
-        console.log('💨 Clicked empty space');
+        console.log("💨 Clicked empty space");
       }
     };
 
-    renderer.domElement.addEventListener('click', handleClick);
+    renderer.domElement.addEventListener("click", handleClick);
 
     // Handle window resize
     const handleResize = () => {
-      if (!canvasRef.current || !camera || !renderer) return;
+      if (!container || !camera || !renderer) return;
 
-      const width = canvasRef.current.clientWidth;
-      const height = canvasRef.current.clientHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
 
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -264,12 +273,12 @@ export const Scene3D = () => {
       renderer.setSize(width, height);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      renderer.domElement.removeEventListener('click', handleClick);
+      window.removeEventListener("resize", handleResize);
+      renderer.domElement.removeEventListener("click", handleClick);
 
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -283,8 +292,8 @@ export const Scene3D = () => {
         renderer.dispose();
       }
 
-      if (canvasRef.current && renderer.domElement) {
-        canvasRef.current.removeChild(renderer.domElement);
+      if (container && renderer.domElement) {
+        container.removeChild(renderer.domElement);
       }
     };
   }, []);
