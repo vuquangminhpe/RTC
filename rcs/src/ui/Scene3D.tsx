@@ -3,16 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { VietnamMap3D } from '../core/VietnamMap3D';
 import { CameraController } from '../core/CameraController';
-import type { HistoricalLocation } from '../types';
 import { LoadingScreen } from './LoadingScreen';
 import './Scene3D.css';
 
-interface Scene3DProps {
-  onLocationReached?: (location: HistoricalLocation) => void;
-  currentLocation?: HistoricalLocation | null;
-}
-
-export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) => {
+export const Scene3D = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -140,6 +134,54 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
     };
     animate(0);
 
+    // Raycasting for click detection on 3D objects
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handleClick = (event: MouseEvent) => {
+      if (!canvasRef.current || !camera || !scene) return;
+
+      // Calculate mouse position in normalized device coordinates (-1 to +1)
+      const rect = canvasRef.current.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Update raycaster
+      raycaster.setFromCamera(mouse, camera);
+
+      // Check for intersections with markers
+      const markers = vietnamMap.getMarkers();
+      if (!markers) return;
+
+      const intersects = raycaster.intersectObjects(markers.children, true);
+
+      if (intersects.length > 0) {
+        // Find the marker group (parent of intersected object)
+        let markerGroup = intersects[0].object;
+        while (markerGroup.parent && markerGroup.parent !== markers) {
+          markerGroup = markerGroup.parent;
+        }
+
+        // Get location from userData
+        const location = markerGroup.userData.location;
+        if (location) {
+          console.log('Clicked location:', location.name);
+
+          // Hide all scenes first
+          vietnamMap.hideAllScenes();
+
+          // Fly to location
+          cameraController.flyToLocation(location, 4).then(() => {
+            // Show the 3D scene for this location
+            vietnamMap.showScene(location.id);
+            console.log('Reached:', location.name);
+          });
+        }
+      }
+    };
+
+    renderer.domElement.addEventListener('click', handleClick);
+
     // Handle window resize
     const handleResize = () => {
       if (!canvasRef.current || !camera || !renderer) return;
@@ -158,6 +200,7 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      renderer.domElement.removeEventListener('click', handleClick);
 
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -176,21 +219,6 @@ export const Scene3D = ({ onLocationReached, currentLocation }: Scene3DProps) =>
       }
     };
   }, []);
-
-  // Handle location changes
-  useEffect(() => {
-    if (currentLocation && cameraControllerRef.current && vietnamMapRef.current) {
-      // Fly to location
-      cameraControllerRef.current.flyToLocation(currentLocation, 4).then(() => {
-        // Show the 3D scene for this location
-        vietnamMapRef.current?.showScene(currentLocation.id);
-
-        if (onLocationReached) {
-          onLocationReached(currentLocation);
-        }
-      });
-    }
-  }, [currentLocation, onLocationReached]);
 
   return (
     <div className="scene-3d-container">

@@ -421,6 +421,13 @@ export class VietnamMap3D {
   }
 
   /**
+   * Get markers group for raycasting
+   */
+  public getMarkers(): THREE.Group {
+    return this.markers;
+  }
+
+  /**
    * Update method (called each frame)
    */
   public update(_deltaTime: number): void {
