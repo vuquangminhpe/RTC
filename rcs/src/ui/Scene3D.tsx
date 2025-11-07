@@ -111,8 +111,67 @@ export const Scene3D = () => {
         setTimeout(() => {
           setIsLoading(false);
 
-          // Play intro flight
-          cameraController.introFlight();
+          // Skip intro flight for now - just show the scene
+          console.log('✅ Scene ready! Camera at:', camera.position);
+          console.log('📍 Click on glowing pillars (markers) to fly to locations');
+          console.log('🎮 Drag to rotate, scroll to zoom');
+
+          // Reset camera to good viewing position
+          camera.position.set(0, 80, 120);
+          camera.lookAt(0, 0, 0);
+          controls.update();
+
+          // Add 3D instruction sprite
+          const instructionCanvas = document.createElement('canvas');
+          instructionCanvas.width = 1024;
+          instructionCanvas.height = 512;
+          const ctx = instructionCanvas.getContext('2d')!;
+
+          // Background
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillRect(20, 20, 984, 472);
+
+          // Border
+          ctx.strokeStyle = '#4ecdc4';
+          ctx.lineWidth = 4;
+          ctx.strokeRect(20, 20, 984, 472);
+
+          // Title
+          ctx.fillStyle = '#ff6b6b';
+          ctx.font = 'bold 60px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🎮 HƯỚNG DẪN TƯƠNG TÁC', 512, 100);
+
+          // Instructions
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '40px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText('🖱️  Kéo chuột để xoay camera', 80, 180);
+          ctx.fillText('🔍 Scroll để zoom in/out', 80, 240);
+          ctx.fillText('📍 Click vào CỘT SÁNG để bay đến địa điểm', 80, 300);
+          ctx.fillText('✨ 5 địa điểm lịch sử đang chờ bạn!', 80, 360);
+
+          ctx.fillStyle = '#4ecdc4';
+          ctx.font = 'italic 32px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('(Tìm các cột sáng phát quang trên bản đồ)', 512, 440);
+
+          const instructionTexture = new THREE.CanvasTexture(instructionCanvas);
+          const instructionMaterial = new THREE.SpriteMaterial({
+            map: instructionTexture,
+            transparent: true,
+          });
+          const instructionSprite = new THREE.Sprite(instructionMaterial);
+          instructionSprite.position.set(0, 50, -50); // In front of camera
+          instructionSprite.scale.set(60, 30, 1);
+          scene.add(instructionSprite);
+
+          // Auto-hide after 8 seconds
+          setTimeout(() => {
+            scene.remove(instructionSprite);
+            instructionTexture.dispose();
+            instructionMaterial.dispose();
+          }, 8000);
         }, 500);
       })
       .catch((error) => {
@@ -146,14 +205,20 @@ export const Scene3D = () => {
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+      console.log('🖱️ Click at:', { x: mouse.x.toFixed(2), y: mouse.y.toFixed(2) });
+
       // Update raycaster
       raycaster.setFromCamera(mouse, camera);
 
       // Check for intersections with markers
       const markers = vietnamMap.getMarkers();
-      if (!markers) return;
+      if (!markers) {
+        console.log('❌ No markers found');
+        return;
+      }
 
       const intersects = raycaster.intersectObjects(markers.children, true);
+      console.log(`🎯 Found ${intersects.length} intersections`);
 
       if (intersects.length > 0) {
         // Find the marker group (parent of intersected object)
@@ -165,7 +230,7 @@ export const Scene3D = () => {
         // Get location from userData
         const location = markerGroup.userData.location;
         if (location) {
-          console.log('Clicked location:', location.name);
+          console.log('✅ Clicked location:', location.name, location.year);
 
           // Hide all scenes first
           vietnamMap.hideAllScenes();
@@ -174,9 +239,13 @@ export const Scene3D = () => {
           cameraController.flyToLocation(location, 4).then(() => {
             // Show the 3D scene for this location
             vietnamMap.showScene(location.id);
-            console.log('Reached:', location.name);
+            console.log('🎬 Showing scene:', location.name);
           });
+        } else {
+          console.log('⚠️ No location data in marker');
         }
+      } else {
+        console.log('💨 Clicked empty space');
       }
     };
 
