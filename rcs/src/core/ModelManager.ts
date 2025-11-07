@@ -143,35 +143,42 @@ export class ModelManager {
     const group = new THREE.Group();
     group.name = 'DienBienPhu';
 
+    // SCALE UP for visibility
+    const SCENE_SCALE = 8;
+
     // Add bunker
     if (this.models.bunker) {
       const bunker = this.models.bunker.scene.clone();
-      bunker.position.set(0, 0, 0);
-      bunker.scale.setScalar(1);
+      bunker.position.set(0, 5, 0); // Raise above terrain
+      bunker.scale.setScalar(SCENE_SCALE);
+      this.enableShadows(bunker);
       group.add(bunker);
     }
 
     // Add mountains (background)
     if (this.models.mountains) {
       const mountains = this.models.mountains.scene.clone();
-      mountains.position.set(0, -5, -30);
-      mountains.scale.setScalar(2);
+      mountains.position.set(0, 0, -30);
+      mountains.scale.setScalar(SCENE_SCALE * 2);
+      this.enableShadows(mountains);
       group.add(mountains);
     }
 
     // Add sandbags (multiple)
     if (this.models.sandbags) {
       const positions = [
-        { x: -3, z: 2 },
-        { x: 3, z: 2 },
-        { x: -4, z: -1 },
-        { x: 4, z: -1 },
+        { x: -15, z: 10 },
+        { x: 15, z: 10 },
+        { x: -20, z: -5 },
+        { x: 20, z: -5 },
       ];
 
       positions.forEach((pos) => {
         const sandbag = this.models.sandbags!.scene.clone();
-        sandbag.position.set(pos.x, 0, pos.z);
+        sandbag.position.set(pos.x, 3, pos.z);
+        sandbag.scale.setScalar(SCENE_SCALE);
         sandbag.rotation.y = Math.random() * Math.PI;
+        this.enableShadows(sandbag);
         group.add(sandbag);
       });
     }
@@ -179,33 +186,36 @@ export class ModelManager {
     // Add soldier (hero)
     if (this.models.soldierClimbing) {
       const soldier = this.models.soldierClimbing.scene.clone();
-      soldier.position.set(-1, 2, 1);
-      soldier.scale.setScalar(1);
+      soldier.position.set(-5, 15, 5);
+      soldier.scale.setScalar(SCENE_SCALE);
       soldier.name = 'hero-soldier';
+      this.enableShadows(soldier);
       group.add(soldier);
     }
 
     // Add flag pole
     if (this.models.flagPole) {
       const flag = this.models.flagPole.scene.clone();
-      flag.position.set(0, 5, 0);
-      flag.scale.setScalar(0.5);
+      flag.position.set(0, 25, 0);
+      flag.scale.setScalar(SCENE_SCALE * 0.8);
       flag.name = 'victory-flag';
+      this.enableShadows(flag);
       group.add(flag);
     }
 
     // Add trees
     if (this.models.tree) {
       const treePositions = [
-        { x: -8, z: 5 },
-        { x: 8, z: 5 },
-        { x: -10, z: -5 },
+        { x: -30, z: 20 },
+        { x: 30, z: 20 },
+        { x: -35, z: -15 },
       ];
 
       treePositions.forEach((pos) => {
         const tree = this.models.tree!.scene.clone();
-        tree.position.set(pos.x, 0, pos.z);
-        tree.scale.setScalar(1 + Math.random() * 0.3);
+        tree.position.set(pos.x, 3, pos.z);
+        tree.scale.setScalar(SCENE_SCALE * (1 + Math.random() * 0.3));
+        this.enableShadows(tree);
         group.add(tree);
       });
     }
@@ -221,12 +231,16 @@ export class ModelManager {
     const group = new THREE.Group();
     group.name = 'BaDinh';
 
+    // SCALE UP for visibility
+    const SCENE_SCALE = 8;
+
     // Add Bác Hồ (center stage)
     if (this.models.bacHo) {
       const bacHo = this.models.bacHo.scene.clone();
-      bacHo.position.set(0, 1, 0);
-      bacHo.scale.setScalar(1);
+      bacHo.position.set(0, 5, 0);
+      bacHo.scale.setScalar(SCENE_SCALE);
       bacHo.name = 'bac-ho';
+      this.enableShadows(bacHo);
       group.add(bacHo);
     }
 
@@ -235,15 +249,15 @@ export class ModelManager {
       const positions: THREE.Vector3[] = [];
       const rotations: THREE.Euler[] = [];
 
-      // Generate crowd positions (grid with randomness)
+      // Generate crowd positions (grid with randomness) - SCALED UP
       const rows = 5;
       const cols = 15;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const x = (col - cols / 2) * 1.5 + (Math.random() - 0.5) * 0.5;
-          const z = 5 + row * 1.2 + (Math.random() - 0.5) * 0.3;
-          const y = 0;
+          const x = (col - cols / 2) * 10 + (Math.random() - 0.5) * 3;
+          const z = 20 + row * 8 + (Math.random() - 0.5) * 2;
+          const y = 3;
 
           positions.push(new THREE.Vector3(x, y, z));
           rotations.push(new THREE.Euler(0, Math.random() * 0.4 - 0.2, 0));
@@ -254,27 +268,31 @@ export class ModelManager {
         this.models.crowdPerson,
         positions.length,
         positions,
-        rotations
+        rotations,
+        SCENE_SCALE
       );
 
       crowdMesh.name = 'crowd';
+      crowdMesh.castShadow = true;
+      crowdMesh.receiveShadow = true;
       group.add(crowdMesh);
     }
 
     // Add flag poles (4 corners)
     if (this.models.flagPole) {
       const flagPositions = [
-        { x: -10, z: -2 },
-        { x: 10, z: -2 },
-        { x: -12, z: 8 },
-        { x: 12, z: 8 },
+        { x: -40, z: -10 },
+        { x: 40, z: -10 },
+        { x: -45, z: 35 },
+        { x: 45, z: 35 },
       ];
 
       flagPositions.forEach((pos, i) => {
         const flag = this.models.flagPole!.scene.clone();
-        flag.position.set(pos.x, 0, pos.z);
-        flag.scale.setScalar(0.8);
+        flag.position.set(pos.x, 3, pos.z);
+        flag.scale.setScalar(SCENE_SCALE);
         flag.name = `flag-${i}`;
+        this.enableShadows(flag);
         group.add(flag);
       });
     }
@@ -282,15 +300,15 @@ export class ModelManager {
     // Add clouds
     if (this.models.cloud) {
       const cloudPositions = [
-        { x: -15, y: 15, z: -10 },
-        { x: 10, y: 12, z: -8 },
-        { x: 0, y: 18, z: -12 },
+        { x: -60, y: 50, z: -40 },
+        { x: 40, y: 45, z: -35 },
+        { x: 0, y: 55, z: -50 },
       ];
 
       cloudPositions.forEach((pos) => {
         const cloud = this.models.cloud!.scene.clone();
         cloud.position.set(pos.x, pos.y, pos.z);
-        cloud.scale.setScalar(2 + Math.random());
+        cloud.scale.setScalar(15 + Math.random() * 5);
         group.add(cloud);
       });
     }
@@ -306,30 +324,36 @@ export class ModelManager {
     const group = new THREE.Group();
     group.name = 'Saigon1975';
 
+    // SCALE UP for visibility
+    const SCENE_SCALE = 8;
+
     // Add Independence Palace (background)
     if (this.models.palace) {
       const palace = this.models.palace.scene.clone();
-      palace.position.set(0, 0, -15);
-      palace.scale.setScalar(1.5);
+      palace.position.set(0, 5, -60);
+      palace.scale.setScalar(SCENE_SCALE * 1.5);
       palace.name = 'palace';
+      this.enableShadows(palace);
       group.add(palace);
     }
 
     // Add Tank 390 (HERO!)
     if (this.models.tank) {
       const tank = this.models.tank.scene.clone();
-      tank.position.set(-10, 0, 5);
+      tank.position.set(-30, 3, 15);
       tank.rotation.y = Math.PI / 6; // Angle towards palace
-      tank.scale.setScalar(1);
+      tank.scale.setScalar(SCENE_SCALE);
       tank.name = 'tank-390';
+      this.enableShadows(tank);
       group.add(tank);
 
       // Add flag on tank
       if (this.models.flagPole) {
         const flag = this.models.flagPole.scene.clone();
-        flag.position.set(-10, 2, 5);
-        flag.scale.setScalar(0.3);
+        flag.position.set(-30, 15, 15);
+        flag.scale.setScalar(SCENE_SCALE * 0.5);
         flag.name = 'tank-flag';
+        this.enableShadows(flag);
         group.add(flag);
       }
     }
@@ -340,9 +364,9 @@ export class ModelManager {
       const rotations: THREE.Euler[] = [];
 
       for (let i = 0; i < 8; i++) {
-        const x = -12 - i * 1.5 + (Math.random() - 0.5);
-        const z = 5 + (Math.random() - 0.5) * 3;
-        positions.push(new THREE.Vector3(x, 0, z));
+        const x = -40 - i * 8 + (Math.random() - 0.5) * 3;
+        const z = 15 + (Math.random() - 0.5) * 10;
+        positions.push(new THREE.Vector3(x, 3, z));
         rotations.push(new THREE.Euler(0, Math.PI / 6, 0));
       }
 
@@ -350,32 +374,48 @@ export class ModelManager {
         this.models.soldierClimbing,
         positions.length,
         positions,
-        rotations
+        rotations,
+        SCENE_SCALE
       );
 
       soldiersMesh.name = 'soldiers-following';
+      soldiersMesh.castShadow = true;
+      soldiersMesh.receiveShadow = true;
       group.add(soldiersMesh);
     }
 
     // Add trees/vegetation
     if (this.models.tree) {
       const treePositions = [
-        { x: -15, z: -5 },
-        { x: 15, z: -5 },
-        { x: -12, z: 10 },
-        { x: 12, z: 10 },
+        { x: -50, z: -20 },
+        { x: 50, z: -20 },
+        { x: -40, z: 35 },
+        { x: 40, z: 35 },
       ];
 
       treePositions.forEach((pos) => {
         const tree = this.models.tree!.scene.clone();
-        tree.position.set(pos.x, 0, pos.z);
-        tree.scale.setScalar(1.2);
+        tree.position.set(pos.x, 3, pos.z);
+        tree.scale.setScalar(SCENE_SCALE * 1.2);
+        this.enableShadows(tree);
         group.add(tree);
       });
     }
 
     console.log('✅ Sài Gòn 1975 scene created');
     return group;
+  }
+
+  /**
+   * Enable shadows for all meshes in an object
+   */
+  private enableShadows(object: THREE.Object3D): void {
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
   }
 
   /**

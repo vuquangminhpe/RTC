@@ -297,7 +297,7 @@ export class ModelLoader {
     count: number,
     positions: THREE.Vector3[],
     rotations?: THREE.Euler[],
-    scales?: THREE.Vector3[]
+    scaleValue?: number | THREE.Vector3[]
   ): THREE.InstancedMesh {
     // Find first mesh in model
     let geometry: THREE.BufferGeometry | null = null;
@@ -321,7 +321,16 @@ export class ModelLoader {
     for (let i = 0; i < count; i++) {
       const position = positions[i] || new THREE.Vector3();
       const rotation = rotations?.[i] || new THREE.Euler();
-      const scale = scales?.[i] || new THREE.Vector3(1, 1, 1);
+
+      // Handle scale - can be a number (uniform) or array of Vector3
+      let scale: THREE.Vector3;
+      if (typeof scaleValue === 'number') {
+        scale = new THREE.Vector3(scaleValue, scaleValue, scaleValue);
+      } else if (Array.isArray(scaleValue)) {
+        scale = scaleValue[i] || new THREE.Vector3(1, 1, 1);
+      } else {
+        scale = new THREE.Vector3(1, 1, 1);
+      }
 
       matrix.compose(position, new THREE.Quaternion().setFromEuler(rotation), scale);
       instancedMesh.setMatrixAt(i, matrix);
